@@ -7,5 +7,14 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.action-button': {
+          '@apply w-full text-center p-1 min-h-[2rem] overflow-hidden flex items-center justify-center': {}
+        },
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 }

@@ -13,6 +13,7 @@ interface RollHistoryEntry {
   timestamp: Date;
   rolls: RollOutcome[];
   average: number;
+  action: string;
 }
 
 interface RollHistoryProps {
@@ -23,7 +24,7 @@ const RollHistory: React.FC<RollHistoryProps> = ({ history }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    setCurrentIndex(0);  // Reset to the most recent roll when history changes
+    setCurrentIndex(0);
   }, [history]);
 
   const goToPrevious = () => {
@@ -32,7 +33,7 @@ const RollHistory: React.FC<RollHistoryProps> = ({ history }) => {
     );
   };
 
-  const goToNext = () => {
+  const goToNext = () => {  
     setCurrentIndex((prevIndex) => 
       prevIndex > 0 ? prevIndex - 1 : prevIndex
     );
@@ -75,6 +76,9 @@ const RollHistory: React.FC<RollHistoryProps> = ({ history }) => {
             </div>
             <div className="font-bold mb-1">
               Result: {currentEntry.average}
+            </div>
+            <div className="text-xs mb-1">
+              Action: {currentEntry.action}
             </div>
           </div>
           <div className="space-y-1">

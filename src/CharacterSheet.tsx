@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle, ForwardedRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle, ForwardedRef } from 'react';
 import { Minus } from 'lucide-react';
 import { Action } from './ActionPanel';
 import RollHistory from './RollHistory';

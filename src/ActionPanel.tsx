@@ -1,7 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import Button from './Button';
 import AbilitySelector from './AbilitySelector';
-import RollHistory from './RollHistory';
 
 export interface Action {
   name: string;
@@ -10,29 +9,9 @@ export interface Action {
   category: string;
 }
 
-interface Ability {
-  die: string;
-  label: string;
-}
-
-interface RollOutcome {
-  ability: string;
-  die: string;
-  rollResults: number[];
-  modifier: number;
-  finalTotal: number;
-}
-
-interface RollResult {
-  rolls: RollOutcome[];
-  average: number;
-}
-
-interface RollHistoryEntry {
-  timestamp: Date;
-  rolls: RollOutcome[];
-  average: number;
-  action: string;
+interface ActionPanelProps {
+  onActionSelect: (action: Action) => void;
+  selectedAction: Action | null;
 }
 
 const actions: Action[] = [
@@ -58,66 +37,55 @@ const actions: Action[] = [
   { name: "Investigate", abilities: ["Brains", "Grit"], description: "Average Roll vs TN", category: "Perception" },
 ];
 
-const ActionPanel: React.FC = () => {
-  const categories = useMemo(() => Array.from(new Set(actions.map(action => action.category))), []);
-  const [rollHistory, setRollHistory] = useState<RollHistoryEntry[]>([]);
-  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-
-  const abilities = useMemo<Ability[]>(() => [
-    { die: 'D20', label: 'Brains' },
-    { die: 'D12', label: 'Handle' },
-    { die: 'D10', label: 'Grit' },
-    { die: 'D8', label: 'Charm' },
-    { die: 'D6', label: 'Flight' },
-    { die: 'D4', label: 'Brawn' },
-  ], []);
-
-  const handleRollResult = useCallback((result: RollResult) => {
-    const newHistoryEntry: RollHistoryEntry = {
-      timestamp: new Date(),
-      rolls: result.rolls,
-      average: result.average,
-      action: selectedAction ? selectedAction.name : 'Manual Roll',
-    };
-    setRollHistory(prev => [newHistoryEntry, ...prev]);
-  }, [selectedAction]);
-
-  const executeAction = useCallback((action: Action) => {
-    setSelectedAction(action);
-  }, []);
+const ActionPanel: React.FC<ActionPanelProps> = ({ onActionSelect, selectedAction }) => {
+  const categories = Array.from(new Set(actions.map(action => action.category)));
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="bg-gray-100 p-4 font-mono text-gray-800 w-[480px] border-4 border-gray-300 shadow-lg">
-        <h1 className="font-bold bg-gray-800 text-white p-1 mb-4 text-lg text-center">ROLL CALCULATOR</h1>
-        <AbilitySelector
-          abilities={abilities}
-          onRollResult={handleRollResult}
-          action={selectedAction}
-        />
+    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-[480px] border-4 border-gray-300 shadow-lg">
+      <h1 className="font-bold bg-gray-800 text-white p-1 mb-4 text-lg text-center">ROLL CALCULATOR</h1>
+      <AbilitySelector
+        abilities={[
+          { die: 'D20', label: 'Brains' },
+          { die: 'D12', label: 'Handle' },
+          { die: 'D10', label: 'Grit' },
+          { die: 'D8', label: 'Charm' },
+          { die: 'D6', label: 'Flight' },
+          { die: 'D4', label: 'Brawn' },
+        ]}
+        onRollResult={() => {}} // Empty function since we don't need rolls here
+        action={selectedAction}
+      />
 
-        <RollHistory history={rollHistory} />
-
-        <h2 className="font-bold bg-gray-800 text-white p-1 mb-4 text-sm">ACTIONS</h2>
-        
-        {categories.map(category => (
-          <div key={category} className="mb-4">
-            <h3 className="font-bold text-sm mb-2">{category}</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {actions
-                .filter(action => action.category === category)
-                .map((action) => (
-                  <ActionButton key={action.name} action={action} onActionSelect={executeAction} />
-                ))}
-            </div>
+      <h2 className="font-bold bg-gray-800 text-white p-1 mb-4 text-sm">ACTIONS</h2>
+      
+      {categories.map(category => (
+        <div key={category} className="mb-4">
+          <h3 className="font-bold text-sm mb-2">{category}</h3>
+          <div className="grid grid-cols-4 gap-2">
+            {actions
+              .filter(action => action.category === category)
+              .map((action) => (
+                <ActionButton 
+                  key={action.name} 
+                  action={action} 
+                  onActionSelect={onActionSelect}
+                  isSelected={selectedAction?.name === action.name}
+                />
+              ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 };
 
-const ActionButton: React.FC<{ action: Action; onActionSelect: (action: Action) => void }> = ({ action, onActionSelect }) => {
+interface ActionButtonProps {
+  action: Action;
+  onActionSelect: (action: Action) => void;
+  isSelected: boolean;
+}
+
+const ActionButton: React.FC<ActionButtonProps> = ({ action, onActionSelect, isSelected }) => {
   const [showDescription, setShowDescription] = useState(false);
 
   return (
@@ -129,6 +97,7 @@ const ActionButton: React.FC<{ action: Action; onActionSelect: (action: Action) 
       <Button
         onClick={() => onActionSelect(action)}
         className="action-button"
+        isSelected={isSelected}
       >
         <div className="text-xs">{action.name}</div>
       </Button>

@@ -15,11 +15,11 @@ interface Action {
 }
 
 interface AbilitySelectorProps {
-    abilities: Ability[];
-    onRollResult: (result: RollResult) => void;
-    calculateModifier: (ability: string) => number;
-    action?: Action | null;
-  }
+  abilities: Ability[];
+  onRollResult: (result: RollResult) => void;
+  calculateModifier?: (ability: string) => number;
+  action?: Action | null;
+}
 
 interface RollOutcome {
   ability: string;
@@ -37,7 +37,7 @@ interface RollResult {
 const AbilitySelector: React.FC<AbilitySelectorProps> = ({
   abilities,
   onRollResult,
-  calculateModifier = () => 0,
+  calculateModifier,
   action
 }) => {
   const [selectedAbilities, setSelectedAbilities] = useState<(Ability | null)[]>([null, null]);
@@ -56,7 +56,7 @@ const AbilitySelector: React.FC<AbilitySelectorProps> = ({
   const rollDice = useCallback(() => {
     const rolls = selectedAbilities.filter((a): a is Ability => a !== null).map(ability => {
       const max = parseInt(ability.die.slice(1));
-      const modifier = calculateModifier(ability.label);
+      const modifier = calculateModifier ? calculateModifier(ability.label) : 0;
       const rollResults = explodingDiceRoll(max);
       const total = rollResults.reduce((sum, roll) => sum + roll, 0) + modifier;
       return {

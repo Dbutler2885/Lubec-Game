@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { X } from 'lucide-react';
 import Button from './Button';
 
@@ -6,6 +6,7 @@ interface Ability {
   die: string;
   label: string;
 }
+
 
 interface Action {
   name: string;
@@ -18,7 +19,7 @@ interface AbilitySelectorProps {
   abilities: Ability[];
   onRollResult: (result: RollResult) => void;
   calculateModifier?: (ability: string) => number;
-  action?: Action | null;
+  selectedAction?: Action | null;
 }
 
 interface RollOutcome {
@@ -38,7 +39,7 @@ const AbilitySelector: React.FC<AbilitySelectorProps> = ({
   abilities,
   onRollResult,
   calculateModifier,
-  action
+  selectedAction
 }) => {
   const [selectedAbilities, setSelectedAbilities] = useState<(Ability | null)[]>([null, null]);
   const [rollResult, setRollResult] = useState<number | null>(null);
@@ -53,8 +54,8 @@ const AbilitySelector: React.FC<AbilitySelectorProps> = ({
     return rolls;
   }, []);
 
-  const rollDice = useCallback(() => {
-    const rolls = selectedAbilities.filter((a): a is Ability => a !== null).map(ability => {
+  const rollDiceWithAbilities = useCallback((abilitiesToRoll: (Ability | null)[]) => {
+    const rolls = abilitiesToRoll.filter((a): a is Ability => a !== null).map(ability => {
       const max = parseInt(ability.die.slice(1));
       const modifier = calculateModifier ? calculateModifier(ability.label) : 0;
       const rollResults = explodingDiceRoll(max);
@@ -76,7 +77,48 @@ const AbilitySelector: React.FC<AbilitySelectorProps> = ({
     const average = Math.ceil(rolls.reduce((a, b) => a + b.finalTotal, 0) / rolls.length);
     setRollResult(average);
     onRollResult({ rolls, average });
-  }, [selectedAbilities, calculateModifier, explodingDiceRoll, onRollResult]);
+  }, [calculateModifier, explodingDiceRoll, onRollResult]);
+
+  // Auto-populate abilities and auto-roll when selectedAction changes
+  useEffect(() => {
+    if (selectedAction) {
+      // Find the abilities that match the action's required abilities
+      const actionAbilities = selectedAction.abilities.map(abilityLabel => 
+        abilities.find(ability => ability.label === abilityLabel)
+      ).filter((ability): ability is Ability => ability !== undefined);
+      
+      if (actionAbilities.length === 2) {
+        setSelectedAbilities(actionAbilities);
+        
+        // Auto-roll with the specific abilities (inline to avoid dependency issues)
+        const rolls = actionAbilities.map(ability => {
+          const max = parseInt(ability.die.slice(1));
+          const modifier = calculateModifier ? calculateModifier(ability.label) : 0;
+          const rollResults = explodingDiceRoll(max);
+          const total = rollResults.reduce((sum, roll) => sum + roll, 0) + modifier;
+          return {
+            ability: ability.label,
+            die: ability.die,
+            rollResults,
+            modifier,
+            finalTotal: total
+          };
+        });
+        
+        const average = Math.ceil(rolls.reduce((a, b) => a + b.finalTotal, 0) / rolls.length);
+        setRollResult(average);
+        onRollResult({ rolls, average });
+      }
+    } else {
+      // Clear abilities when no action selected
+      setSelectedAbilities([null, null]);
+      setRollResult(null);
+    }
+  }, [selectedAction, abilities]); // Only depend on the actual data changes
+
+  const rollDice = useCallback(() => {
+    rollDiceWithAbilities(selectedAbilities);
+  }, [selectedAbilities, rollDiceWithAbilities]);
 
   const toggleAbility = (ability: Ability) => {
     setSelectedAbilities(prev => {
@@ -159,13 +201,6 @@ const AbilitySelector: React.FC<AbilitySelectorProps> = ({
         ))}
       </div>
 
-      {action && (
-        <div className="mt-4 p-2 bg-gray-100 rounded">
-          <h3 className="font-bold text-sm mb-2">Selected Action: {action.name}</h3>
-          <p className="text-xs mb-2">{action.description}</p>
-          <p className="text-xs">Abilities: {action.abilities.join(', ')}</p>
-        </div>
-      )}
     </div>
   );
 };

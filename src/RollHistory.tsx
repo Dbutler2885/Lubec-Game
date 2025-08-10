@@ -65,30 +65,28 @@ const RollHistory: React.FC<RollHistoryProps> = ({ history }) => {
     <div className="mb-4">
       <h4 className="font-bold bg-gray-800 text-white p-1 mb-1 text-sm">ROLL HISTORY</h4>
       <div className="h-24 bg-gray-200 relative">
-        <div className="p-0 pr-8 text-sm h-full flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-bold text-sm">{rollLabel} Roll</span>
-              <span className="text-gray-600 flex items-center">
-                <Clock size={12} className="mr-1" />
-                {currentEntry.timestamp.toLocaleTimeString()}
-              </span>
-            </div>
-            <div className="font-bold mb-1">
-              Result: {currentEntry.average}
-            </div>
-            <div className="text-xs mb-1">
-              Action: {currentEntry.action}
-            </div>
+        <div className="p-1 pr-8 text-xs h-full flex flex-col justify-start overflow-hidden">
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-xs">{rollLabel} Roll</span>
+            <span className="text-gray-600 flex items-center text-[10px]">
+              <Clock size={10} className="mr-1" />
+              {currentEntry.timestamp.toLocaleTimeString([], {timeStyle: 'short'})}
+            </span>
           </div>
-          <div className="space-y-1">
+          <div className="font-bold text-xs">
+            Result: {currentEntry.average}
+          </div>
+          <div className="text-[10px] mb-1">
+            Action: {currentEntry.action}
+          </div>
+          <div className="space-y-0">
             {currentEntry.rolls.map((roll, rollIndex) => (
-              <div key={rollIndex} className="text-[10px] leading-tight">
+              <div key={rollIndex} className="text-[9px] leading-tight">
                 <span>{roll.ability} ({roll.die}): </span>
-                <span>{roll.rollResults.join(' + ')}</span>
+                <span>{roll.rollResults.join('+')}</span>
                 {roll.modifier !== 0 && (
                   <span className={roll.modifier > 0 ? 'text-green-600' : 'text-red-600'}>
-                    {' '}({roll.modifier > 0 ? `+${roll.modifier}` : roll.modifier})
+                    {roll.modifier > 0 ? `+${roll.modifier}` : roll.modifier}
                   </span>
                 )}
                 <span> = {roll.finalTotal}</span>

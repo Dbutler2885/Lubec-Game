@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Button from './Button';
 import AbilitySelector from './AbilitySelector';
+import RollHistory from './RollHistory';
 
 export interface Action {
   name: string;
@@ -9,9 +10,25 @@ export interface Action {
   category: string;
 }
 
+interface RollOutcome {
+  ability: string;
+  die: string;
+  rollResults: number[];
+  modifier: number;
+  finalTotal: number;
+}
+
+interface RollHistoryEntry {
+  timestamp: Date;
+  rolls: RollOutcome[];
+  average: number;
+  action: string;
+}
+
 interface ActionPanelProps {
-  onActionSelect: (action: Action) => void;
+  onActionSelect: (action: Action | null) => void;
   selectedAction: Action | null;
+  calculateModifier: (ability: string) => number;
 }
 
 const actions: Action[] = [
@@ -37,24 +54,64 @@ const actions: Action[] = [
   { name: "Investigate", abilities: ["Brains", "Grit"], description: "Average Roll vs TN", category: "Perception" },
 ];
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ onActionSelect, selectedAction }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ onActionSelect, selectedAction, calculateModifier }) => {
+  const [rollHistory, setRollHistory] = useState<RollHistoryEntry[]>([]);
   const categories = Array.from(new Set(actions.map(action => action.category)));
 
+  const abilities = useMemo(() => [
+    { die: 'D20', label: 'Brains' },
+    { die: 'D12', label: 'Handle' },
+    { die: 'D10', label: 'Grit' },
+    { die: 'D8', label: 'Charm' },
+    { die: 'D6', label: 'Flight' },
+    { die: 'D4', label: 'Brawn' },
+  ], []);
+
+
+  const handleRollResult = useCallback((result: { rolls: RollOutcome[], average: number }) => {
+    const newEntry: RollHistoryEntry = {
+      timestamp: new Date(),
+      rolls: result.rolls,
+      average: result.average,
+      action: selectedAction?.name || 'Manual Roll'
+    };
+    setRollHistory(prev => [newEntry, ...prev]);
+  }, [selectedAction?.name]);
+
   return (
-    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-[480px] border-4 border-gray-300 shadow-lg">
+    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-full md:w-[480px] border-0 md:border-4 border-gray-300 shadow-none md:shadow-lg h-full">
       <h1 className="font-bold bg-gray-800 text-white p-1 mb-4 text-lg text-center">ROLL CALCULATOR</h1>
       <AbilitySelector
-        abilities={[
-          { die: 'D20', label: 'Brains' },
-          { die: 'D12', label: 'Handle' },
-          { die: 'D10', label: 'Grit' },
-          { die: 'D8', label: 'Charm' },
-          { die: 'D6', label: 'Flight' },
-          { die: 'D4', label: 'Brawn' },
-        ]}
-        onRollResult={() => {}} // Empty function since we don't need rolls here
-        action={selectedAction}
+        abilities={abilities}
+        onRollResult={handleRollResult}
+        calculateModifier={calculateModifier}
+        selectedAction={selectedAction}
       />
+
+      {/* Selected Action Info and Roll History side by side on desktop, stacked on mobile */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="flex-1">
+          <div className="mb-4">
+            <h4 className="font-bold bg-gray-800 text-white p-1 mb-1 text-sm">SELECTED ACTION</h4>
+            <div className="h-24 bg-gray-200 p-2 flex flex-col justify-center">
+              {selectedAction ? (
+                <div className="text-sm">
+                  <p className="font-bold mb-1">{selectedAction.name}</p>
+                  <p className="text-xs mb-1">{selectedAction.abilities.join(" + ")}</p>
+                  <p className="text-xs">{selectedAction.description}</p>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center">
+                  No action selected
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex-1">
+          <RollHistory history={rollHistory} />
+        </div>
+      </div>
 
       <h2 className="font-bold bg-gray-800 text-white p-1 mb-4 text-sm">ACTIONS</h2>
       
@@ -81,12 +138,22 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ onActionSelect, selectedActio
 
 interface ActionButtonProps {
   action: Action;
-  onActionSelect: (action: Action) => void;
+  onActionSelect: (action: Action | null) => void;
   isSelected: boolean;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({ action, onActionSelect, isSelected }) => {
   const [showDescription, setShowDescription] = useState(false);
+
+  const handleClick = () => {
+    if (isSelected) {
+      // If already selected, unselect by passing null
+      onActionSelect(null);
+    } else {
+      // If not selected, select this action
+      onActionSelect(action);
+    }
+  };
 
   return (
     <div 
@@ -95,7 +162,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ action, onActionSelect, isS
       onMouseLeave={() => setShowDescription(false)}
     >
       <Button
-        onClick={() => onActionSelect(action)}
+        onClick={handleClick}
         className="action-button"
         isSelected={isSelected}
       >

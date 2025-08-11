@@ -7,6 +7,7 @@ interface TabContainerProps {
 const TabContainer: React.FC<TabContainerProps> = ({ children }) => {
   const [activeTab, setActiveTab] = useState(0);
   const startX = useRef<number>(0);
+  const startY = useRef<number>(0);
   const isDragging = useRef<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -15,6 +16,7 @@ const TabContainer: React.FC<TabContainerProps> = ({ children }) => {
   // Touch handlers for swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
     isDragging.current = true;
   };
 
@@ -23,8 +25,16 @@ const TabContainer: React.FC<TabContainerProps> = ({ children }) => {
     if (!container) return;
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (isDragging.current) {
-        e.preventDefault(); // Prevent scrolling while swiping
+      if (!isDragging.current) return;
+      
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const diffX = Math.abs(currentX - startX.current);
+      const diffY = Math.abs(currentY - startY.current);
+      
+      // Only prevent default if horizontal movement is greater than vertical
+      if (diffX > diffY && diffX > 10) {
+        e.preventDefault(); // Prevent scrolling only during horizontal swipes
       }
     };
 

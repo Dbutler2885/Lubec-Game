@@ -51,8 +51,8 @@ const App: React.FC = () => {
 
   return (
     <div className="App w-screen h-screen">
-      {/* Desktop Layout */}
-      <main className="hidden md:block h-full">
+      {/* Desktop Layout (large screens) */}
+      <main className="hidden lg:block h-full">
         <div className="container mx-auto p-4 flex justify-center space-x-4 h-full">
           <CharacterSheet 
             strengths={strengths}
@@ -72,8 +72,8 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Mobile Layout */}
-      <div className="md:hidden w-screen h-full">
+      {/* Mobile & Tablet Layout (small to medium screens) */}
+      <div className="lg:hidden w-screen h-screen">
         <TabContainer>
           <CharacterSheet 
             strengths={strengths}

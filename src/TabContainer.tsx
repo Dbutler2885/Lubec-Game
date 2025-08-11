@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface TabContainerProps {
   children: [React.ReactElement, React.ReactElement]; // Exactly 2 tabs
@@ -8,6 +8,7 @@ const TabContainer: React.FC<TabContainerProps> = ({ children }) => {
   const [activeTab, setActiveTab] = useState(0);
   const startX = useRef<number>(0);
   const isDragging = useRef<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const tabs = ['Character', 'Roll'];
 
@@ -17,32 +18,47 @@ const TabContainer: React.FC<TabContainerProps> = ({ children }) => {
     isDragging.current = true;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent scrolling while swiping
-  };
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    
-    const endX = e.changedTouches[0].clientX;
-    const diffX = startX.current - endX;
-    const threshold = 50; // Minimum swipe distance
-    
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0 && activeTab < tabs.length - 1) {
-        // Swipe left - go to next tab
-        setActiveTab(activeTab + 1);
-      } else if (diffX < 0 && activeTab > 0) {
-        // Swipe right - go to previous tab
-        setActiveTab(activeTab - 1);
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging.current) {
+        e.preventDefault(); // Prevent scrolling while swiping
       }
-    }
-    
-    isDragging.current = false;
-  };
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isDragging.current) return;
+      
+      const endX = e.changedTouches[0].clientX;
+      const diffX = startX.current - endX;
+      const threshold = 50; // Minimum swipe distance
+      
+      if (Math.abs(diffX) > threshold) {
+        if (diffX > 0 && activeTab < tabs.length - 1) {
+          // Swipe left - go to next tab
+          setActiveTab(activeTab + 1);
+        } else if (diffX < 0 && activeTab > 0) {
+          // Swipe right - go to previous tab
+          setActiveTab(activeTab - 1);
+        }
+      }
+      
+      isDragging.current = false;
+    };
+
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [activeTab, tabs.length]);
 
   return (
-    <div className="w-screen h-full bg-white flex flex-col">
+    <div className="w-screen h-screen bg-white flex flex-col">
       {/* Tab Navigation */}
       <div className="flex bg-gray-200 border-b border-gray-300 flex-shrink-0">
         {tabs.map((tab, index) => (
@@ -62,18 +78,17 @@ const TabContainer: React.FC<TabContainerProps> = ({ children }) => {
 
       {/* Tab Content with Swipe Support */}
       <div 
-        className="flex-1 overflow-hidden"
+        ref={containerRef}
+        className="flex-1 overflow-hidden flex justify-center"
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {activeTab === 0 && (
-          <div className="h-full overflow-auto">
+          <div className="h-full overflow-auto w-full">
             {children[0]}
           </div>
         )}
         {activeTab === 1 && (
-          <div className="h-full overflow-auto">
+          <div className="h-full overflow-auto w-full">
             {children[1]}
           </div>
         )}

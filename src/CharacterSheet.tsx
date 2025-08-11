@@ -162,7 +162,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
   };
 
   return (
-    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-full md:w-[480px] border-0 md:border-4 border-gray-300 shadow-none md:shadow-lg h-full">
+    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-full lg:w-[480px] border-0 lg:border-4 border-gray-300 shadow-none lg:shadow-lg h-full">
       <div className="bg-gray-800 mb-4 p-2">
         <h3 className="font-bold text-lg text-center text-white">
           {state.characterName.toUpperCase()}
@@ -179,7 +179,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
       {/* PANELS (no Stats section) */}
       <div className="space-y-4">
         {/* Strengths & Flaws Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Strengths */}
           <section>
             <h4 className="font-bold bg-gray-800 text-white p-2 mb-2 text-sm">STRENGTHS</h4>
@@ -236,7 +236,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
         </div>
 
         {/* Spiritual Modifiers & Backpack Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Spiritual Modifiers */}
           <section>
             <h4 className="font-bold bg-gray-800 text-white p-2 mb-2 text-sm">SPIRITUAL MODIFIERS</h4>

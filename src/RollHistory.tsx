@@ -43,7 +43,7 @@ const RollHistory: React.FC<RollHistoryProps> = ({ history }) => {
     return (
       <div className="mb-4">
         <h4 className="font-bold bg-gray-800 text-white p-1 mb-1 text-sm">ROLL HISTORY</h4>
-        <div className="h-24 bg-gray-200 flex items-center justify-center text-gray-500">
+        <div className="bg-gray-200 flex items-center justify-center text-gray-500 py-4">
           No rolls yet
         </div>
       </div>
@@ -64,8 +64,8 @@ const RollHistory: React.FC<RollHistoryProps> = ({ history }) => {
   return (
     <div className="mb-4">
       <h4 className="font-bold bg-gray-800 text-white p-1 mb-1 text-sm">ROLL HISTORY</h4>
-      <div className="h-24 bg-gray-200 relative">
-        <div className="p-1 pr-8 text-xs h-full flex flex-col justify-start overflow-hidden">
+      <div className="bg-gray-200 relative">
+        <div className="p-2 pr-8 text-xs flex flex-col justify-start">
           <div className="flex justify-between items-center">
             <span className="font-bold text-xs">{rollLabel} Roll</span>
             <span className="text-gray-600 flex items-center text-[10px]">

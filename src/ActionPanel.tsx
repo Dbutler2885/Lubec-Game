@@ -78,36 +78,28 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ onActionSelect, selectedActio
     setRollHistory(prev => [newEntry, ...prev]);
   }, [selectedAction?.name]);
 
+  const handleClearSelectedAction = useCallback(() => {
+    const prevActionName = selectedAction?.name;
+    onActionSelect(null); // unselect the action
+    if (prevActionName) {
+      setRollHistory(prev => prev.filter(e => e.action !== prevActionName)); // remove that action's entries
+    }
+  }, [onActionSelect, selectedAction]);
+  
+
   return (
-    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-full md:w-[480px] border-0 md:border-4 border-gray-300 shadow-none md:shadow-lg h-full">
+    <div className="bg-gray-100 p-4 font-mono text-gray-800 w-full lg:w-[480px] border-0 lg:border-4 border-gray-300 shadow-none lg:shadow-lg h-full">
       <h1 className="font-bold bg-gray-800 text-white p-1 mb-4 text-lg text-center">ROLL CALCULATOR</h1>
       <AbilitySelector
         abilities={abilities}
         onRollResult={handleRollResult}
         calculateModifier={calculateModifier}
         selectedAction={selectedAction}
+        clearSelectedAction={handleClearSelectedAction} // NEW
       />
 
       {/* Selected Action Info and Roll History side by side on desktop, stacked on mobile */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <div className="flex-1">
-          <div className="mb-4">
-            <h4 className="font-bold bg-gray-800 text-white p-1 mb-1 text-sm">SELECTED ACTION</h4>
-            <div className="h-24 bg-gray-200 p-2 flex flex-col justify-center">
-              {selectedAction ? (
-                <div className="text-sm">
-                  <p className="font-bold mb-1">{selectedAction.name}</p>
-                  <p className="text-xs mb-1">{selectedAction.abilities.join(" + ")}</p>
-                  <p className="text-xs">{selectedAction.description}</p>
-                </div>
-              ) : (
-                <div className="text-gray-500 text-center">
-                  No action selected
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
         <div className="flex-1">
           <RollHistory history={rollHistory} />
         </div>
@@ -143,39 +135,26 @@ interface ActionButtonProps {
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({ action, onActionSelect, isSelected }) => {
-  const [showDescription, setShowDescription] = useState(false);
-
   const handleClick = () => {
     if (isSelected) {
-      // If already selected, unselect by passing null
       onActionSelect(null);
     } else {
-      // If not selected, select this action
       onActionSelect(action);
     }
   };
 
   return (
-    <div 
-      className="relative"
-      onMouseEnter={() => setShowDescription(true)}
-      onMouseLeave={() => setShowDescription(false)}
-    >
+    <div className="relative">
       <Button
         onClick={handleClick}
-        className="action-button"
+        className="action-button h-12 w-full"
         isSelected={isSelected}
       >
-        <div className="text-xs">{action.name}</div>
+        <div className="text-[11px]">{action.name}</div>
       </Button>
-      {showDescription && (
-        <div className="absolute z-10 bg-white border border-gray-300 p-2 rounded shadow-lg text-xs w-48 -mt-2 left-1/2 transform -translate-x-1/2">
-          <p className="font-bold mb-1">{action.abilities.join(" + ")}</p>
-          <p>{action.description}</p>
-        </div>
-      )}
     </div>
   );
 };
+
 
 export default ActionPanel;
